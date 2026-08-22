@@ -10,6 +10,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
@@ -235,6 +236,7 @@ public class GameView extends JPanel {
 	private void paintResult(final Graphics2D g) {
 		final Lawn lawn = game.lawn();
 		dimLawn(g);
+		paintHitMarkers(g);
 
 		g.setColor(Color.WHITE);
 		g.setFont(getFont().deriveFont(Font.BOLD, 36f));
@@ -246,6 +248,16 @@ public class GameView extends JPanel {
 				game.hits(), 100 * game.hits() * Game.PENALTY_PER_SQUIRREL), lawn.height() / 2 + 20);
 		g.setFont(getFont().deriveFont(Font.BOLD, 28f));
 		drawCentred(g, String.format("score %.1f%%", 100 * game.score()), lawn.height() / 2 + 70);
+	}
+
+	/** Rings every spot where a squirrel was run over, so the damage is on the record. */
+	private void paintHitMarkers(final Graphics2D g) {
+		g.setColor(ALERT);
+		g.setStroke(new BasicStroke(4f));
+		for (final Squirrel squirrel : game.squirrelsRunOver()) {
+			g.draw(new Ellipse2D.Double(squirrel.x() - Squirrel.SIZE, squirrel.y() - Squirrel.SIZE,
+					2 * Squirrel.SIZE, 2 * Squirrel.SIZE));
+		}
 	}
 
 	private void drawCentred(final Graphics2D g, final String text, final double baselineY) {

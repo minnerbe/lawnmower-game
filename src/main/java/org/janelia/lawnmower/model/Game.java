@@ -37,6 +37,7 @@ public class Game {
 	private final Lawn lawn;
 	private final Mower mower;
 	private final List<Squirrel> squirrels = new ArrayList<>();
+	private final List<Squirrel> runOver = new ArrayList<>();
 
 	private State state = State.COUNTDOWN;
 	private double countdown = COUNTDOWN_SECONDS;
@@ -44,7 +45,6 @@ public class Game {
 	private double lastRefresh;
 	private int squirrelsEarned;
 	private int squirrelsPlaced;
-	private int hits;
 
 	/**
 	 * Starts a round with the mower parked in the middle of the lawn, facing right.
@@ -140,9 +140,11 @@ public class Game {
 		}
 		final Shape body = mower.body();
 		for (final var it = squirrels.iterator(); it.hasNext(); ) {
-			if (body.intersects(it.next().bounds())) {
+			final Squirrel squirrel = it.next();
+			if (body.intersects(squirrel.bounds())) {
 				it.remove();
-				hits++;
+				// Kept, rather than just counted, so the end-of-round picture can mark the spot.
+				runOver.add(squirrel);
 			}
 		}
 	}
@@ -154,7 +156,7 @@ public class Game {
 	 * @return the score as a share of the lawn, from 0 to 1
 	 */
 	public double score() {
-		return Math.max(0.0, lawn.mowedFraction() - hits * PENALTY_PER_SQUIRREL);
+		return Math.max(0.0, lawn.mowedFraction() - hits() * PENALTY_PER_SQUIRREL);
 	}
 
 	/** Returns the time left before the round starts, in seconds, or zero once it has. */
@@ -189,7 +191,13 @@ public class Game {
 		return state;
 	}
 
+	/** Returns the number of squirrels run over. */
 	public int hits() {
-		return hits;
+		return runOver.size();
+	}
+
+	/** Returns the squirrels run over, where they were when it happened, oldest first. */
+	public List<Squirrel> squirrelsRunOver() {
+		return Collections.unmodifiableList(runOver);
 	}
 }

@@ -29,3 +29,6 @@ target/
 # IntelliJ
 .idea/
 *.iml
+
+# Screenshots of finished rounds
+screenshots/

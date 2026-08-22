@@ -1,9 +1,13 @@
 package org.janelia.lawnmower.control;
 
+import java.io.IOException;
+import java.nio.file.Path;
+
 import javax.swing.Timer;
 
 import org.janelia.lawnmower.model.Game;
 import org.janelia.lawnmower.view.GameView;
+import org.janelia.lawnmower.view.Screenshots;
 
 /**
  * Drives the round: polls the controls, advances the model and repaints the view.
@@ -17,6 +21,8 @@ public class GameController {
 	private static final int FRAME_MILLIS = 16;
 	/** Largest time step handed to the model, in seconds. */
 	private static final double MAX_STEP = 0.05;
+	/** Where the picture of the finished round goes, relative to the working directory. */
+	private static final Path SCREENSHOT_DIRECTORY = Path.of("screenshots");
 
 	private final Game game;
 	private final GameView view;
@@ -56,6 +62,16 @@ public class GameController {
 
 		if (game.state() == Game.State.OVER) {
 			timer.stop();
+			saveScreenshot();
+		}
+	}
+
+	/** Keeps the final scoreboard as a file. A failure here must not take the game down. */
+	private void saveScreenshot() {
+		try {
+			System.out.println("saved " + Screenshots.save(view, SCREENSHOT_DIRECTORY));
+		} catch (final IOException e) {
+			System.err.println("could not save the screenshot: " + e);
 		}
 	}
 }

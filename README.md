@@ -21,9 +21,14 @@ stop when you let go, and stops dead if it runs into the edge of the lawn. It ca
 while standing still, and it will not pull away in the middle of a turn, so every run cuts
 a straight swath.
 
-A round lasts 90 seconds. For every 10% of the lawn you mow, a squirrel settles down in
-your path a safe distance ahead; it wanders off after six seconds. Each squirrel you mow
-over costs five percentage points of your final score.
+A round opens with a five-second countdown and then lasts 90 seconds. For every 10% of the
+lawn you mow, a squirrel settles down in your path a safe distance ahead and the lawn
+flashes red; it wanders off after six seconds. Each squirrel you mow over costs five
+percentage points of your final score.
+
+When the clock runs out, the game writes a picture of the finished lawn to
+`screenshots/lawnmower-<date>-<time>.png`, with a red ring around every spot where you ran
+a squirrel over.
 
 ## Building
 

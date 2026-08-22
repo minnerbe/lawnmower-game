@@ -1,5 +1,7 @@
 package org.janelia.lawnmower.model;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -76,9 +78,12 @@ class GameTest {
 	void mowingOverASquirrelCostsFivePercent() {
 		final Game game = thinLawn();
 		drive(game, 2.2, true, 0);
+		final Squirrel doomed = game.squirrels().getFirst();
 		drive(game, 1.5, true, 0);
 
 		assertEquals(1, game.hits());
+		assertEquals(List.of(doomed), game.squirrelsRunOver(),
+				"the spot is kept, so the end-of-round picture can mark it");
 		assertTrue(game.squirrels().isEmpty(), "the squirrel is gone once it is run over");
 		assertEquals(game.lawn().mowedFraction() - Game.PENALTY_PER_SQUIRREL, game.score(), 1e-9);
 	}
