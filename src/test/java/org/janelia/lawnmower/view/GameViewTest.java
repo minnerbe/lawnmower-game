@@ -27,12 +27,12 @@ class GameViewTest {
 
 	@Test
 	void paintsAnUntouchedLawn() {
-		assertDoesNotThrow(() -> render(new Game(800, 600)));
+		assertDoesNotThrow(() -> render(new Game(1600, 1200)));
 	}
 
 	@Test
 	void paintsWhileMowingAndAfterTheRoundEnds() {
-		final Game game = new Game(1200, 60);
+		final Game game = new Game(2400, 120);
 		for (int i = 0; i < 180; i++) {
 			game.update(1.0 / 60, true, 0);
 		}
@@ -44,9 +44,9 @@ class GameViewTest {
 		final BufferedImage finished = render(game);
 
 		final int middle = mowing.getWidth() / 2;
-		assertNotEquals(mowing.getRGB(middle, 5), mowing.getRGB(middle, 30),
+		assertNotEquals(mowing.getRGB(middle, 10), mowing.getRGB(middle, 60),
 				"the mowed swath should stand out against the lawn");
-		assertNotEquals(mowing.getRGB(middle, 30), finished.getRGB(middle, 30),
+		assertNotEquals(mowing.getRGB(middle, 60), finished.getRGB(middle, 60),
 				"the scoreboard should darken the lawn once the round is over");
 	}
 }

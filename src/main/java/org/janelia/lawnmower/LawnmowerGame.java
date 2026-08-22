@@ -17,8 +17,8 @@ import org.janelia.lawnmower.view.GameView;
  */
 public final class LawnmowerGame {
 
-	private static final int LAWN_WIDTH = 800;
-	private static final int LAWN_HEIGHT = 600;
+	private static final int LAWN_WIDTH = 1600;
+	private static final int LAWN_HEIGHT = 1200;
 
 	private LawnmowerGame() {
 	}

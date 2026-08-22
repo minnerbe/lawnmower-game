@@ -17,17 +17,17 @@ import java.awt.geom.Rectangle2D;
 public class Mower {
 
 	/** Top speed, in units per second. */
-	public static final double MAX_SPEED = 180.0;
+	public static final double MAX_SPEED = 360.0;
 	/** Acceleration while the forward control is held, in units per second squared. */
-	public static final double ACCELERATION = 220.0;
+	public static final double ACCELERATION = 440.0;
 	/** Deceleration while the forward control is released, in units per second squared. */
-	public static final double DECELERATION = 260.0;
+	public static final double DECELERATION = 520.0;
 	/** Turn rate at full turn input, in radians per second. */
 	public static final double TURN_RATE = 2.0;
 	/** Width of the mower, and therefore of the swath it cuts, in units. */
-	public static final double WIDTH = 24.0;
+	public static final double WIDTH = 48.0;
 	/** Length of the mower along its heading, in units. */
-	public static final double LENGTH = 36.0;
+	public static final double LENGTH = 72.0;
 
 	private double x;
 	private double y;

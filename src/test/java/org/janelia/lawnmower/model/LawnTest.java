@@ -12,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 class LawnTest {
 
-	private static final double LAWN_W = 800.0;
-	private static final double LAWN_H = 600.0;
+	private static final double LAWN_W = 1600.0;
+	private static final double LAWN_H = 1200.0;
 
 	private static Area union(final Rectangle2D... rectangles) {
 		final Area area = new Area();
@@ -52,7 +52,7 @@ class LawnTest {
 	@Test
 	void aRunOpensASwathAndStoppingCommitsIt() {
 		final Lawn lawn = new Lawn(LAWN_W, LAWN_H);
-		final Mower mower = new Mower(100, 300, 0);
+		final Mower mower = new Mower(200, 600, 0);
 
 		mower.update(0.1, true, 0, LAWN_W, LAWN_H);
 		lawn.follow(mower);
@@ -73,7 +73,7 @@ class LawnTest {
 	void mowingTheSameStripTwiceDoesNotDoubleCount() {
 		final Lawn lawn = new Lawn(LAWN_W, LAWN_H);
 		for (int run = 0; run < 2; run++) {
-			final Mower mower = new Mower(100, 300, 0);
+			final Mower mower = new Mower(200, 600, 0);
 			for (int i = 0; i < 120; i++) {
 				mower.update(1.0 / 60, i < 60, 0, LAWN_W, LAWN_H);
 				lawn.follow(mower);
@@ -87,7 +87,7 @@ class LawnTest {
 	@Test
 	void theSwathInProgressCountsTowardsTheLiveFraction() {
 		final Lawn lawn = new Lawn(LAWN_W, LAWN_H);
-		final Mower mower = new Mower(100, 300, 0);
+		final Mower mower = new Mower(200, 600, 0);
 		for (int i = 0; i < 60; i++) {
 			mower.update(1.0 / 60, true, 0, LAWN_W, LAWN_H);
 			lawn.follow(mower);

@@ -15,7 +15,7 @@ class GameTest {
 	 * lawn that would take several passes and say nothing extra about the rules.
 	 */
 	private static Game thinLawn() {
-		return new Game(1200, 60);
+		return new Game(2400, 120);
 	}
 
 	private static void drive(final Game game, final double seconds,
@@ -64,7 +64,7 @@ class GameTest {
 	@Test
 	void aSquirrelThatWouldLandOffTheLawnIsDeferredNotSkipped() {
 		// Tall enough that the 10% mark is only crossed once the mower is against the far wall.
-		final Game game = new Game(1200, 100);
+		final Game game = new Game(2400, 200);
 		drive(game, 6, true, 0);
 		assertTrue(game.lawn().mowedFraction() >= 0.10, "the squirrel has been earned");
 		assertTrue(game.squirrels().isEmpty(), "but there is no room ahead for it");

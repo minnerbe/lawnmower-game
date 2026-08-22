@@ -22,7 +22,7 @@ public class Game {
 	/** Mowed share between one squirrel and the next. */
 	public static final double MOWED_PER_SQUIRREL = 0.10;
 	/** How far ahead of the mower a squirrel appears, in units. */
-	public static final double SAFE_DISTANCE = 200.0;
+	public static final double SAFE_DISTANCE = 400.0;
 	/** How long a squirrel stays before wandering off, in seconds. */
 	public static final double SQUIRREL_LIFETIME = 6.0;
 	/** Share of the lawn deducted per squirrel run over. */
