@@ -23,6 +23,8 @@ public class Game {
 	public static final double MOWED_PER_SQUIRREL = 0.10;
 	/** How far ahead of the mower a squirrel appears, in units. */
 	public static final double SAFE_DISTANCE = 400.0;
+	/** How far a run must have gone before a squirrel is put in its path, in units. */
+	public static final double COMMITTED_RUN = Mower.LENGTH / 2;
 	/** How long a squirrel stays before wandering off, in seconds. */
 	public static final double SQUIRREL_LIFETIME = 6.0;
 	/** Share of the lawn deducted per squirrel run over. */
@@ -87,10 +89,20 @@ public class Game {
 	/**
 	 * Puts every squirrel the player has earned into the mower's path, a safe distance
 	 * ahead. A squirrel that would land off the lawn is deferred rather than dropped: the
-	 * attempt repeats every frame until the mower has room ahead of it, which in practice
-	 * means on its next run away from the boundary.
+	 * attempt repeats until the mower has room ahead of it, which in practice means on its
+	 * next run away from the boundary.
+	 *
+	 * <p>Nothing is placed until the mower has driven {@link #COMMITTED_RUN}. A mower that
+	 * is turning on the spot sweeps its heading through every direction in turn, and placing
+	 * a squirrel on the first one that happens to clear the boundary would drop it wherever
+	 * the mower briefly pointed. Once the mower is under way its heading is fixed, so what
+	 * lies ahead of it really is in its path.
 	 */
 	private void placeDueSquirrels() {
+		if (lawn.runDistance() < COMMITTED_RUN) {
+			return;
+		}
+
 		// Squirrels deferred from earlier are spread out along the path so they do not stack.
 		for (int placedNow = 0; squirrelsPlaced < squirrelsEarned; placedNow++) {
 			final double distance = SAFE_DISTANCE + placedNow * 2 * Squirrel.SIZE;

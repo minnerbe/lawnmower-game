@@ -71,7 +71,10 @@ class GameTest {
 		assertTrue(game.squirrels().isEmpty(), "but there is no room ahead for it");
 
 		drive(game, 1.6, false, -1);
-		assertEquals(1, game.squirrels().size(), "it appears once the mower faces the lawn again");
+		assertTrue(game.squirrels().isEmpty(), "turning alone is not yet a settled heading");
+
+		drive(game, 1, true, 0);
+		assertEquals(1, game.squirrels().size(), "it appears once the mower is under way again");
 	}
 
 	@Test

@@ -31,6 +31,7 @@ public class Lawn {
 	private double startX;
 	private double startY;
 	private double startHeading;
+	private double runDistance;
 	private double mowedFraction;
 
 	/**
@@ -59,10 +60,10 @@ public class Lawn {
 			startY = mower.y();
 			startHeading = mower.heading();
 		}
-		final double distance = Math.hypot(mower.x() - startX, mower.y() - startY);
+		runDistance = Math.hypot(mower.x() - startX, mower.y() - startY);
 		final Rectangle2D unrotated = new Rectangle2D.Double(
 				startX - Mower.LENGTH / 2, startY - Mower.WIDTH / 2,
-				distance + Mower.LENGTH, Mower.WIDTH);
+				runDistance + Mower.LENGTH, Mower.WIDTH);
 		currentSwath = AffineTransform.getRotateInstance(startHeading, startX, startY)
 				.createTransformedShape(unrotated);
 	}
@@ -78,6 +79,7 @@ public class Lawn {
 		mowed.add(currentSwath);
 		coverage.add(new Area(currentSwath));
 		currentSwath = null;
+		runDistance = 0.0;
 		mowedFraction = areaOf(coverage) / (width * height);
 	}
 
@@ -146,6 +148,11 @@ public class Lawn {
 	/** Returns the swath being mowed right now, or {@code null} if the mower is stopped. */
 	public Shape currentSwath() {
 		return currentSwath;
+	}
+
+	/** Returns how far the run in progress has gone, in units, or zero if the mower is stopped. */
+	public double runDistance() {
+		return runDistance;
 	}
 
 	/** Returns the mowed share of the lawn, from 0 to 1. */
