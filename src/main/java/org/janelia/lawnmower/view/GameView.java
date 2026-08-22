@@ -9,6 +9,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
 
@@ -88,12 +90,22 @@ public class GameView extends JPanel {
 	private void paintSquirrels(final Graphics2D g) {
 		g.setColor(SQUIRREL);
 		for (final Squirrel squirrel : game.squirrels()) {
-			g.fill(squirrel.bounds());
+			if (Sprites.SQUIRREL == null) {
+				g.fill(squirrel.bounds());
+			} else {
+				drawSprite(g, Sprites.SQUIRREL, squirrel.x(), squirrel.y(), 0);
+			}
 		}
 	}
 
 	private void paintMower(final Graphics2D g) {
 		final Mower mower = game.mower();
+		if (Sprites.MOWER != null) {
+			// The sprite faces north, a heading of -PI/2, so it trails the heading by a quarter turn.
+			drawSprite(g, Sprites.MOWER, mower.x(), mower.y(), mower.heading() + Math.PI / 2);
+			return;
+		}
+
 		g.setColor(MOWER);
 		g.fill(mower.body());
 
@@ -104,6 +116,14 @@ public class GameView extends JPanel {
 		g.drawLine((int) mower.x(), (int) mower.y(),
 				(int) (mower.x() + Math.cos(mower.heading()) * nose),
 				(int) (mower.y() + Math.sin(mower.heading()) * nose));
+	}
+
+	/** Draws a sprite centred on a point in lawn units and turned clockwise by {@code rotation}. */
+	private static void drawSprite(final Graphics2D g, final BufferedImage sprite,
+			final double x, final double y, final double rotation) {
+		final AffineTransform placement = AffineTransform.getRotateInstance(rotation, x, y);
+		placement.translate(x - sprite.getWidth() / 2.0, y - sprite.getHeight() / 2.0);
+		g.drawImage(sprite, placement, null);
 	}
 
 	private void paintHud(final Graphics2D g) {
