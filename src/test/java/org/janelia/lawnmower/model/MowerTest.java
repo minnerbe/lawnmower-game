@@ -62,6 +62,16 @@ class MowerTest {
 	}
 
 	@Test
+	void turningAgainstAWallDoesNotShoveTheMowerInwards() {
+		// Parked flush against the right wall, so any rotation swings a corner over the edge.
+		final Mower mower = new Mower(LAWN_W - Mower.LENGTH / 2, 600, 0);
+		drive(mower, 0.5, false, 1);
+		drive(mower, 0.5, false, 0);
+		assertEquals(LAWN_W - Mower.LENGTH / 2, mower.x(), 1e-9);
+		assertEquals(600.0, mower.y(), 1e-9);
+	}
+
+	@Test
 	void bodyStaysTheSameSizeWhenRotated() {
 		final Mower straight = new Mower(800, 600, 0);
 		final Mower angled = new Mower(800, 600, Math.PI / 4);

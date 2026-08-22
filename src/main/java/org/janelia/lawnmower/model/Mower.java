@@ -9,7 +9,8 @@ import java.awt.geom.Rectangle2D;
  *
  * <p>The mower drives straight along its current heading. It can only turn while standing
  * still, and it cannot start moving in the same instant it turns, so a completed run is
- * always a straight line. Running into the lawn boundary stops it.
+ * always a straight line. Running into the lawn boundary stops it, but turning on the
+ * spot never does: a parked mower may swing a corner out over the edge.
  *
  * <p>All lengths are in lawn units (pixels), angles in radians, and times in seconds.
  * A heading of {@code 0} points in the direction of increasing x.
@@ -75,7 +76,11 @@ public class Mower {
 
 		x += Math.cos(heading) * speed * dt;
 		y += Math.sin(heading) * speed * dt;
-		stopAtBoundary(lawnWidth, lawnHeight);
+		if (speed > 0.0) {
+			// Only a mower that moved can have left the lawn. Correcting a standing mower would
+			// shove it inwards whenever a turn swung a corner over the edge.
+			stopAtBoundary(lawnWidth, lawnHeight);
+		}
 	}
 
 	/** Pushes the body back inside the lawn and kills the speed if it stuck out. */
