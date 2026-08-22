@@ -31,9 +31,17 @@ class GameViewTest {
 		assertDoesNotThrow(() -> render(new Game(1600, 1200)));
 	}
 
+	/** Runs the opening countdown out, so the lawn is not behind the "get ready" overlay. */
+	private static Game started(final Game game) {
+		while (game.state() == Game.State.COUNTDOWN) {
+			game.update(1.0 / 60, false, 0);
+		}
+		return game;
+	}
+
 	@Test
 	void anArrivingSquirrelTintsTheLawn() {
-		final Game game = new Game(2400, 120);
+		final Game game = started(new Game(2400, 120));
 		final BufferedImage calm = render(game);
 
 		for (int i = 0; i < 600 && game.squirrels().isEmpty(); i++) {
@@ -50,7 +58,7 @@ class GameViewTest {
 
 	@Test
 	void paintsWhileMowingAndAfterTheRoundEnds() {
-		final Game game = new Game(2400, 120);
+		final Game game = started(new Game(2400, 120));
 		for (int i = 0; i < 180; i++) {
 			game.update(1.0 / 60, true, 0);
 		}

@@ -14,9 +14,11 @@ import java.util.List;
  */
 public class Game {
 
-	/** Whether the round is still being played. */
-	public enum State { RUNNING, OVER }
+	/** How far along the round is: counting in, being played, or finished. */
+	public enum State { COUNTDOWN, RUNNING, OVER }
 
+	/** How long the player gets to settle in before the clock starts, in seconds. */
+	public static final double COUNTDOWN_SECONDS = 5.0;
 	/** Length of a round, in seconds. */
 	public static final double ROUND_SECONDS = 90.0;
 	/** Mowed share between one squirrel and the next. */
@@ -36,7 +38,8 @@ public class Game {
 	private final Mower mower;
 	private final List<Squirrel> squirrels = new ArrayList<>();
 
-	private State state = State.RUNNING;
+	private State state = State.COUNTDOWN;
+	private double countdown = COUNTDOWN_SECONDS;
 	private double elapsed;
 	private double lastRefresh;
 	private int squirrelsEarned;
@@ -55,13 +58,21 @@ public class Game {
 	}
 
 	/**
-	 * Advances the round by one time step and does nothing once the round is over.
+	 * Advances the round by one time step. Controls are ignored while the round counts in,
+	 * and nothing happens at all once it is over.
 	 *
 	 * @param dt elapsed time, in seconds
 	 * @param accelerate whether the forward control is held
 	 * @param turn turn input in [-1, 1]; negative turns left, positive right
 	 */
 	public void update(final double dt, final boolean accelerate, final double turn) {
+		if (state == State.COUNTDOWN) {
+			countdown = Math.max(0.0, countdown - dt);
+			if (countdown == 0.0) {
+				state = State.RUNNING;
+			}
+			return;
+		}
 		if (state == State.OVER) {
 			return;
 		}
@@ -144,6 +155,11 @@ public class Game {
 	 */
 	public double score() {
 		return Math.max(0.0, lawn.mowedFraction() - hits * PENALTY_PER_SQUIRREL);
+	}
+
+	/** Returns the time left before the round starts, in seconds, or zero once it has. */
+	public double countdownSeconds() {
+		return countdown;
 	}
 
 	/** Returns the time the round has been running, in seconds. */

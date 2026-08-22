@@ -38,6 +38,8 @@ public class GameView extends JPanel {
 	private static final Color HUD_BACKGROUND = new Color(32, 32, 32);
 	private static final Color HUD_TEXT = new Color(238, 238, 238);
 	private static final Color BAR_EMPTY = new Color(70, 70, 70);
+	/** Laid over the lawn while it is not being played, so text on top stays readable. */
+	private static final Color DIM = new Color(0, 0, 0, 170);
 
 	/** How long the lawn stays tinted after a squirrel appears, in seconds. */
 	private static final double FLASH_SECONDS = 0.3;
@@ -77,8 +79,10 @@ public class GameView extends JPanel {
 		paintSquirrels(g);
 		paintMower(g);
 		paintHud(g);
-		if (game.state() == Game.State.OVER) {
-			paintResult(g);
+		switch (game.state()) {
+			case COUNTDOWN -> paintCountdown(g);
+			case OVER -> paintResult(g);
+			case RUNNING -> { }
 		}
 		g.dispose();
 	}
@@ -208,10 +212,29 @@ public class GameView extends JPanel {
 		}
 	}
 
+	/** Counts the round in with a big number, so the player can settle in first. */
+	private void paintCountdown(final Graphics2D g) {
+		final Lawn lawn = game.lawn();
+		dimLawn(g);
+
+		g.setColor(Color.WHITE);
+		// Above the middle, so the count does not sit on top of the parked mower.
+		g.setFont(getFont().deriveFont(Font.BOLD, 120f));
+		drawCentred(g, String.valueOf((int) Math.ceil(game.countdownSeconds())),
+				lawn.height() / 2 - 120);
+		g.setFont(getFont().deriveFont(Font.PLAIN, 24f));
+		drawCentred(g, "get ready", lawn.height() / 2 - 70);
+	}
+
+	private void dimLawn(final Graphics2D g) {
+		final Lawn lawn = game.lawn();
+		g.setColor(DIM);
+		g.fillRect(0, 0, (int) lawn.width(), (int) lawn.height());
+	}
+
 	private void paintResult(final Graphics2D g) {
 		final Lawn lawn = game.lawn();
-		g.setColor(new Color(0, 0, 0, 170));
-		g.fillRect(0, 0, (int) lawn.width(), (int) lawn.height());
+		dimLawn(g);
 
 		g.setColor(Color.WHITE);
 		g.setFont(getFont().deriveFont(Font.BOLD, 36f));

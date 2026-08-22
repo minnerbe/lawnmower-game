@@ -16,7 +16,13 @@ class GameTest {
 	 * follows the mower, so that one pass always cuts the same share of the lawn.
 	 */
 	private static Game thinLawn() {
-		return new Game(2400, 2.5 * Mower.WIDTH);
+		return started(new Game(2400, 2.5 * Mower.WIDTH));
+	}
+
+	/** Runs the opening countdown out, so a test can get straight to the mowing. */
+	private static Game started(final Game game) {
+		drive(game, Game.COUNTDOWN_SECONDS + DT, false, 0);
+		return game;
 	}
 
 	private static void drive(final Game game, final double seconds,
@@ -24,6 +30,21 @@ class GameTest {
 		for (int i = 0; i < seconds / DT; i++) {
 			game.update(DT, accelerate, turn);
 		}
+	}
+
+	@Test
+	void theRoundOnlyStartsOnceTheCountdownIsOver() {
+		final Game game = new Game(2400, 340);
+		drive(game, Game.COUNTDOWN_SECONDS - 1, true, 0);
+
+		assertEquals(Game.State.COUNTDOWN, game.state());
+		assertEquals(0.0, game.mower().speed(), "the controls are dead until the round starts");
+		assertEquals(Game.ROUND_SECONDS, game.remainingSeconds(), "and the clock has not started");
+
+		drive(game, 1.1, true, 0);
+		assertEquals(Game.State.RUNNING, game.state());
+		assertEquals(0.0, game.countdownSeconds());
+		assertTrue(game.mower().isMoving());
 	}
 
 	@Test
@@ -65,7 +86,7 @@ class GameTest {
 	@Test
 	void aSquirrelThatWouldLandOffTheLawnIsDeferredNotSkipped() {
 		// Tall enough that the 10% mark is only crossed once the mower is against the far wall.
-		final Game game = new Game(2400, 340);
+		final Game game = started(new Game(2400, 340));
 		drive(game, 6, true, 0);
 		assertTrue(game.lawn().mowedFraction() >= 0.10, "the squirrel has been earned");
 		assertTrue(game.squirrels().isEmpty(), "but there is no room ahead for it");
