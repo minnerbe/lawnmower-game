@@ -134,6 +134,11 @@ public class Game {
 		return Math.max(0.0, lawn.mowedFraction() - hits * PENALTY_PER_SQUIRREL);
 	}
 
+	/** Returns the time the round has been running, in seconds. */
+	public double elapsedSeconds() {
+		return elapsed;
+	}
+
 	/** Returns the time left in the round, in seconds, never below zero. */
 	public double remainingSeconds() {
 		return Math.max(0.0, ROUND_SECONDS - elapsed);

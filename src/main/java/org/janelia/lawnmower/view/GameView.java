@@ -33,10 +33,16 @@ public class GameView extends JPanel {
 	private static final Color UNMOWED = new Color(28, 92, 38);
 	private static final Color MOWED = new Color(126, 196, 84);
 	private static final Color SQUIRREL = new Color(140, 96, 62);
+	private static final Color ALERT = new Color(220, 30, 30);
 	private static final Color MOWER = new Color(220, 60, 50);
 	private static final Color HUD_BACKGROUND = new Color(32, 32, 32);
 	private static final Color HUD_TEXT = new Color(238, 238, 238);
 	private static final Color BAR_EMPTY = new Color(70, 70, 70);
+
+	/** How long the lawn stays tinted after a squirrel appears, in seconds. */
+	private static final double FLASH_SECONDS = 0.3;
+	/** Opacity of the tint at the moment a squirrel appears, from 0 to 255. */
+	private static final int FLASH_ALPHA = 90;
 
 	/** Set between the HUD readings, which all share one line. */
 	private static final String SEPARATOR = "   \u00b7   ";
@@ -67,6 +73,7 @@ public class GameView extends JPanel {
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 		paintLawn(g);
+		paintSquirrelAlert(g);
 		paintSquirrels(g);
 		paintMower(g);
 		paintHud(g);
@@ -88,6 +95,29 @@ public class GameView extends JPanel {
 		if (lawn.currentSwath() != null) {
 			g.fill(lawn.currentSwath());
 		}
+	}
+
+	/**
+	 * Tints the lawn red as a squirrel appears and fades the tint out again, so the player
+	 * notices the new arrival without having to spot it.
+	 *
+	 * <p>The tint is derived from the youngest squirrel's age rather than counted down in a
+	 * field of its own, which keeps the view free of state that a dropped frame could
+	 * desync. A squirrel mowed over mid-flash therefore takes its flash with it.
+	 */
+	private void paintSquirrelAlert(final Graphics2D g) {
+		double youngest = FLASH_SECONDS;
+		for (final Squirrel squirrel : game.squirrels()) {
+			youngest = Math.min(youngest, game.elapsedSeconds() - squirrel.spawnTime());
+		}
+		final int alpha = (int) Math.round(FLASH_ALPHA * (1.0 - youngest / FLASH_SECONDS));
+		if (alpha <= 0) {
+			return;
+		}
+
+		final Lawn lawn = game.lawn();
+		g.setColor(new Color(ALERT.getRed(), ALERT.getGreen(), ALERT.getBlue(), alpha));
+		g.fillRect(0, 0, (int) lawn.width(), (int) lawn.height());
 	}
 
 	private void paintSquirrels(final Graphics2D g) {

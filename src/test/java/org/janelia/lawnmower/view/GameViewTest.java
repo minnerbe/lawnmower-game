@@ -6,6 +6,7 @@ import org.janelia.lawnmower.model.Game;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
@@ -28,6 +29,23 @@ class GameViewTest {
 	@Test
 	void paintsAnUntouchedLawn() {
 		assertDoesNotThrow(() -> render(new Game(1600, 1200)));
+	}
+
+	@Test
+	void anArrivingSquirrelTintsTheLawn() {
+		final Game game = new Game(2400, 120);
+		final BufferedImage calm = render(game);
+
+		for (int i = 0; i < 600 && game.squirrels().isEmpty(); i++) {
+			game.update(1.0 / 60, true, 0);
+		}
+		assertFalse(game.squirrels().isEmpty(), "a squirrel should have appeared by now");
+		final BufferedImage flash = render(game);
+
+		// A strip of lawn the mower has not touched in either frame, so only the tint differs.
+		final int middle = flash.getWidth() / 2;
+		assertNotEquals(calm.getRGB(middle, 5), flash.getRGB(middle, 5),
+				"the lawn should be tinted for a moment after a squirrel appears");
 	}
 
 	@Test
