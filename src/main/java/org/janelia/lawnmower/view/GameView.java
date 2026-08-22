@@ -38,6 +38,9 @@ public class GameView extends JPanel {
 	private static final Color HUD_TEXT = new Color(238, 238, 238);
 	private static final Color BAR_EMPTY = new Color(70, 70, 70);
 
+	/** Set between the HUD readings, which all share one line. */
+	private static final String SEPARATOR = "   \u00b7   ";
+
 	/** Speed bar colours, slowest segment first. */
 	private static final Color[] BAR_COLORS = {
 			new Color(80, 200, 80), new Color(160, 210, 60), new Color(230, 210, 60),
@@ -134,12 +137,32 @@ public class GameView extends JPanel {
 
 		g.setColor(HUD_TEXT);
 		g.setFont(getFont().deriveFont(Font.BOLD, 20f));
-		g.drawString(String.format("%04.1f s", game.remainingSeconds()), 20, top + 34);
-		g.drawString(String.format("mowed %.1f%%", 100 * lawn.mowedFraction()), 20, top + 62);
-		g.setFont(getFont().deriveFont(Font.PLAIN, 14f));
-		g.drawString("squirrels hit: " + game.hits(), 180, top + 62);
+		final FontMetrics metrics = g.getFontMetrics();
+		final int baseline = top + (HUD_HEIGHT + metrics.getAscent() - metrics.getDescent()) / 2;
+		drawRow(g, baseline, 20,
+				String.format("%04.1f s", game.remainingSeconds()),
+				String.format("mowed %.1f%%", 100 * lawn.mowedFraction()),
+				"squirrels hit: " + game.hits());
 
 		paintSpeedBar(g, getWidth() - 60, top + 8);
+	}
+
+	/**
+	 * Draws the readings left to right on one baseline, measuring each one so the gaps stay
+	 * even however wide the numbers grow.
+	 */
+	private static void drawRow(final Graphics2D g, final int baseline, final int left,
+			final String... readings) {
+		final FontMetrics metrics = g.getFontMetrics();
+		int x = left;
+		for (final String reading : readings) {
+			if (x > left) {
+				g.drawString(SEPARATOR, x, baseline);
+				x += metrics.stringWidth(SEPARATOR);
+			}
+			g.drawString(reading, x, baseline);
+			x += metrics.stringWidth(reading);
+		}
 	}
 
 	/** Draws five stacked segments, green at the bottom and red at the top. */
