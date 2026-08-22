@@ -12,7 +12,7 @@ import java.awt.geom.Rectangle2D;
 public record Squirrel(double x, double y, double spawnTime) {
 
 	/** Edge length of a squirrel, in units. */
-	public static final double SIZE = 40.0;
+	public static final double SIZE = 60.0;
 
 	/** Returns the square the squirrel occupies, in lawn coordinates. */
 	public Rectangle2D bounds() {

@@ -25,9 +25,9 @@ public class Mower {
 	/** Turn rate at full turn input, in radians per second. */
 	public static final double TURN_RATE = 2.0;
 	/** Width of the mower, and therefore of the swath it cuts, in units. */
-	public static final double WIDTH = 48.0;
+	public static final double WIDTH = 72.0;
 	/** Length of the mower along its heading, in units. */
-	public static final double LENGTH = 72.0;
+	public static final double LENGTH = 108.0;
 
 	private double x;
 	private double y;
