@@ -288,9 +288,9 @@ public class GameView extends JPanel {
 	/** Crosses out every spot where a squirrel was run over, so the damage is on the record. */
 	private void paintHitMarkers(final Graphics2D g) {
 		g.setColor(ALERT);
-		g.setStroke(new BasicStroke(10f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+		g.setStroke(new BasicStroke(20f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 		for (final Squirrel squirrel : game.squirrelsRunOver()) {
-			final double arm = Squirrel.SIZE;
+			final double arm = 0.7 * Squirrel.SIZE;
 			g.draw(new Line2D.Double(squirrel.x() - arm, squirrel.y() - arm,
 					squirrel.x() + arm, squirrel.y() + arm));
 			g.draw(new Line2D.Double(squirrel.x() - arm, squirrel.y() + arm,
