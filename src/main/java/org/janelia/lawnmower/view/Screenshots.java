@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import javax.imageio.ImageIO;
-import javax.swing.JComponent;
 
 /**
  * Keeps a picture of a finished round.
@@ -25,20 +24,14 @@ public final class Screenshots {
 	}
 
 	/**
-	 * Paints a component into a PNG named after the local time it was taken.
+	 * Writes a picture to a PNG named after the local time it was taken.
 	 *
-	 * @param component the component to paint, at its current size; must have been laid out
+	 * @param image the picture to write, typically from {@link GameView#snapshot()}
 	 * @param directory the directory to write to, created if it does not exist yet
 	 * @return the file written
 	 * @throws IOException if the directory or the file cannot be written
 	 */
-	public static Path save(final JComponent component, final Path directory) throws IOException {
-		final BufferedImage image = new BufferedImage(
-				component.getWidth(), component.getHeight(), BufferedImage.TYPE_INT_RGB);
-		final var g = image.createGraphics();
-		component.paint(g);
-		g.dispose();
-
+	public static Path save(final BufferedImage image, final Path directory) throws IOException {
 		Files.createDirectories(directory);
 		final Path file = directory.resolve(
 				"lawnmower-" + STAMP.format(LocalDateTime.now()) + ".png");

@@ -75,17 +75,41 @@ public class GameView extends JPanel {
 		final Graphics2D g = (Graphics2D) graphics.create();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-		paintLawn(g);
-		paintSquirrelAlert(g);
-		paintSquirrels(g);
-		paintMower(g);
-		paintHud(g);
+		paintScene(g);
 		switch (game.state()) {
 			case COUNTDOWN -> paintCountdown(g);
 			case OVER -> paintResult(g);
 			case RUNNING -> { }
 		}
 		g.dispose();
+	}
+
+	/**
+	 * Paints the round into a new image without the end-of-round scoreboard, which belongs
+	 * on the screen rather than in a picture of the lawn. The hit markers stay: they are
+	 * part of the record.
+	 *
+	 * @return the picture, at the view's current size
+	 */
+	public BufferedImage snapshot() {
+		final BufferedImage image = new BufferedImage(
+				getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+		final Graphics2D g = image.createGraphics();
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g.setFont(getFont());
+		paintScene(g);
+		paintHitMarkers(g);
+		g.dispose();
+		return image;
+	}
+
+	/** Draws everything that is always on show, overlays aside. */
+	private void paintScene(final Graphics2D g) {
+		paintLawn(g);
+		paintSquirrelAlert(g);
+		paintSquirrels(g);
+		paintMower(g);
+		paintHud(g);
 	}
 
 	private void paintLawn(final Graphics2D g) {

@@ -21,7 +21,7 @@ class ScreenshotsTest {
 		view.setSize(view.getPreferredSize());
 
 		// A directory that does not exist yet: the first round of the day has to create it.
-		final Path file = Screenshots.save(view, parent.resolve("screenshots"));
+		final Path file = Screenshots.save(view.snapshot(), parent.resolve("screenshots"));
 
 		assertTrue(file.getFileName().toString().matches("lawnmower-\\d{8}-\\d{6}\\.png"),
 				"unexpected file name: " + file.getFileName());

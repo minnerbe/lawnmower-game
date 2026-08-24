@@ -69,7 +69,7 @@ public class GameController {
 	/** Keeps the final scoreboard as a file. A failure here must not take the game down. */
 	private void saveScreenshot() {
 		try {
-			System.out.println("saved " + Screenshots.save(view, SCREENSHOT_DIRECTORY));
+			System.out.println("saved " + Screenshots.save(view.snapshot(), SCREENSHOT_DIRECTORY));
 		} catch (final IOException e) {
 			System.err.println("could not save the screenshot: " + e);
 		}

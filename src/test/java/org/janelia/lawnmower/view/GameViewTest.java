@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
@@ -74,5 +75,24 @@ class GameViewTest {
 				"the mowed swath should stand out against the lawn");
 		assertNotEquals(mowing.getRGB(middle, 60), finished.getRGB(middle, 60),
 				"the scoreboard should darken the lawn once the round is over");
+	}
+
+	@Test
+	void theSnapshotLeavesTheScoreboardOutButKeepsTheHitMarkers() {
+		final Game game = started(new Game(2400, 120));
+		while (game.state() != Game.State.OVER) {
+			game.update(1.0 / 60, true, 0);
+		}
+		final GameView view = new GameView(game);
+		view.setSize(view.getPreferredSize());
+
+		final BufferedImage screen = render(game);
+		final BufferedImage snapshot = view.snapshot();
+
+		// A corner of unmowed lawn: dimmed behind the scoreboard, plain in the snapshot.
+		assertNotEquals(screen.getRGB(5, 5), snapshot.getRGB(5, 5),
+				"the snapshot should not be dimmed for an overlay it does not draw");
+		assertEquals(render(started(new Game(2400, 120))).getRGB(5, 5), snapshot.getRGB(5, 5),
+				"it should show the same lawn colour as a round in progress");
 	}
 }
