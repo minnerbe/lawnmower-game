@@ -5,6 +5,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -25,6 +26,23 @@ class GameTest {
 	private static Game started(final Game game) {
 		drive(game, Game.COUNTDOWN_SECONDS + DT, false, 0);
 		return game;
+	}
+
+	/**
+	 * Mows straight ahead until the first squirrel turns up, so the test does not have to
+	 * know how long the mower takes to cover a tenth of the lawn.
+	 */
+	private static Game upToTheFirstSquirrel(final Game game) {
+		for (int i = 0; i < 30 / DT && game.squirrels().isEmpty(); i++) {
+			game.update(DT, true, 0);
+		}
+		assertFalse(game.squirrels().isEmpty(), "no squirrel appeared in half a minute of mowing");
+		return game;
+	}
+
+	/** Long enough to drive past where a squirrel was put, whatever the mower's top speed. */
+	private static double timeToClearTheSafeDistance() {
+		return Game.SAFE_DISTANCE / Mower.MAX_SPEED + 0.5;
 	}
 
 	private static void drive(final Game game, final double seconds,
@@ -51,8 +69,7 @@ class GameTest {
 
 	@Test
 	void aSquirrelAppearsAheadOfTheMowerAtTenPercentMowed() {
-		final Game game = thinLawn();
-		drive(game, 2.2, true, 0);
+		final Game game = upToTheFirstSquirrel(thinLawn());
 
 		assertTrue(game.lawn().mowedFraction() >= 0.10);
 		assertEquals(1, game.squirrels().size());
@@ -65,8 +82,7 @@ class GameTest {
 
 	@Test
 	void aSquirrelWandersOffIfItIsNotHit() {
-		final Game game = thinLawn();
-		drive(game, 2.2, true, 0);
+		final Game game = upToTheFirstSquirrel(thinLawn());
 		assertEquals(1, game.squirrels().size());
 
 		drive(game, Game.SQUIRREL_LIFETIME + 1, false, 0);
@@ -76,10 +92,9 @@ class GameTest {
 
 	@Test
 	void mowingOverASquirrelCostsFivePercent() {
-		final Game game = thinLawn();
-		drive(game, 2.2, true, 0);
+		final Game game = upToTheFirstSquirrel(thinLawn());
 		final Squirrel doomed = game.squirrels().getFirst();
-		drive(game, 1.5, true, 0);
+		drive(game, timeToClearTheSafeDistance(), true, 0);
 
 		assertEquals(1, game.hits());
 		assertEquals(List.of(doomed), game.squirrelsRunOver(),
