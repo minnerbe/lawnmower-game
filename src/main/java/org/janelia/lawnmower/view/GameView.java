@@ -10,7 +10,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
@@ -285,13 +285,16 @@ public class GameView extends JPanel {
 		drawCentred(g, String.format("score %.1f%%", 100 * game.score()), lawn.height() / 2 + 70);
 	}
 
-	/** Rings every spot where a squirrel was run over, so the damage is on the record. */
+	/** Crosses out every spot where a squirrel was run over, so the damage is on the record. */
 	private void paintHitMarkers(final Graphics2D g) {
 		g.setColor(ALERT);
-		g.setStroke(new BasicStroke(4f));
+		g.setStroke(new BasicStroke(10f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 		for (final Squirrel squirrel : game.squirrelsRunOver()) {
-			g.draw(new Ellipse2D.Double(squirrel.x() - Squirrel.SIZE, squirrel.y() - Squirrel.SIZE,
-					2 * Squirrel.SIZE, 2 * Squirrel.SIZE));
+			final double arm = Squirrel.SIZE;
+			g.draw(new Line2D.Double(squirrel.x() - arm, squirrel.y() - arm,
+					squirrel.x() + arm, squirrel.y() + arm));
+			g.draw(new Line2D.Double(squirrel.x() - arm, squirrel.y() + arm,
+					squirrel.x() + arm, squirrel.y() - arm));
 		}
 	}
 

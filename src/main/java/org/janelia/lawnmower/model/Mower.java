@@ -19,10 +19,10 @@ public class Mower {
 
 	/** Top speed, in units per second. */
 	public static final double MAX_SPEED = 250.0;
-	/** Acceleration while the forward control is held, in units per second squared. */
-	public static final double ACCELERATION = 310.0;
-	/** Deceleration while the forward control is released, in units per second squared. */
-	public static final double DECELERATION = 360.0;
+	/** Acceleration while the forward control is held: top speed in about a second. */
+	public static final double ACCELERATION = MAX_SPEED;
+	/** Deceleration while the forward control is released: a stop in about a second. */
+	public static final double DECELERATION = MAX_SPEED;
 	/** Turn rate at full turn input, in radians per second. */
 	public static final double TURN_RATE = 2.0;
 	/** Width of the mower, and therefore of the swath it cuts, in units. */

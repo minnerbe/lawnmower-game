@@ -21,7 +21,7 @@ import org.janelia.lawnmower.view.GameView;
 public final class LawnmowerGame {
 
 	private static final int LAWN_WIDTH = 1600;
-	private static final int LAWN_HEIGHT = 1200;
+	private static final int LAWN_HEIGHT = 800;
 
 	/** Stands in for a name the player did not give. */
 	private static final String ANONYMOUS = "player";
