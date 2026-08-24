@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 class GameViewTest {
 
 	private static BufferedImage render(final Game game) {
-		final GameView view = new GameView(game);
+		final GameView view = new GameView(game, "tester");
 		view.setSize(view.getPreferredSize());
 		final BufferedImage image = new BufferedImage(
 				view.getWidth(), view.getHeight(), BufferedImage.TYPE_INT_RGB);
@@ -83,7 +83,7 @@ class GameViewTest {
 		while (game.state() != Game.State.OVER) {
 			game.update(1.0 / 60, true, 0);
 		}
-		final GameView view = new GameView(game);
+		final GameView view = new GameView(game, "tester");
 		view.setSize(view.getPreferredSize());
 
 		final BufferedImage screen = render(game);

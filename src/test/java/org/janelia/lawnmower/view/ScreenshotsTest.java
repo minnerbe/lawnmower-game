@@ -17,7 +17,7 @@ class ScreenshotsTest {
 
 	@Test
 	void writesATimestampedPngOfTheView(@TempDir final Path parent) throws IOException {
-		final GameView view = new GameView(new Game(800, 600));
+		final GameView view = new GameView(new Game(800, 600), "tester");
 		view.setSize(view.getPreferredSize());
 
 		// A directory that does not exist yet: the first round of the day has to create it.

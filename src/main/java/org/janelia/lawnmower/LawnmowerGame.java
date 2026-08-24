@@ -14,22 +14,49 @@ import org.janelia.lawnmower.view.GameView;
  * <p>Mow as much of the lawn as you can before the clock runs out. Hold the up arrow to
  * drive, and use the left and right arrows to turn while standing still. Every squirrel
  * you run over costs five percent of your score.
+ *
+ * <p>Pass a player name on the command line to have it shown on the scoreboard:
+ * {@code mvn compile exec:java -Dexec.args="my name"}.
  */
 public final class LawnmowerGame {
 
 	private static final int LAWN_WIDTH = 1600;
 	private static final int LAWN_HEIGHT = 1200;
 
+	/** Stands in for a name the player did not give. */
+	private static final String ANONYMOUS = "player";
+	/** Room for a real name, but not enough to push the rest of the status bar off screen. */
+	private static final int NAME_LIMIT = 20;
+
 	private LawnmowerGame() {
 	}
 
 	public static void main(final String[] args) {
-		SwingUtilities.invokeLater(LawnmowerGame::startRound);
+		final String player = playerName(args);
+		SwingUtilities.invokeLater(() -> startRound(player));
 	}
 
-	private static void startRound() {
+	/**
+	 * Reads the player's name off the command line.
+	 *
+	 * <p>The arguments are joined with spaces, because {@code -Dexec.args} hands a name like
+	 * "Ada Lovelace" over as two of them.
+	 *
+	 * @param args the command-line arguments, possibly empty
+	 * @return the name to put on the scoreboard, never blank and never longer than
+	 *     {@link #NAME_LIMIT} characters
+	 */
+	static String playerName(final String[] args) {
+		final String given = String.join(" ", args).trim();
+		if (given.isEmpty()) {
+			return ANONYMOUS;
+		}
+		return given.length() <= NAME_LIMIT ? given : given.substring(0, NAME_LIMIT).trim();
+	}
+
+	private static void startRound(final String player) {
 		final Game game = new Game(LAWN_WIDTH, LAWN_HEIGHT);
-		final GameView view = new GameView(game);
+		final GameView view = new GameView(game, player);
 		final KeyboardControls controls = new KeyboardControls();
 		view.addKeyListener(controls);
 

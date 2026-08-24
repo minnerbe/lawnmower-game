@@ -56,14 +56,17 @@ public class GameView extends JPanel {
 			new Color(240, 150, 50), new Color(220, 60, 50)};
 
 	private final Game game;
+	private final String player;
 
 	/**
 	 * Creates a view of a round in progress.
 	 *
 	 * @param game the model to draw; the view never modifies it
+	 * @param player the player's name, shown on the status bar and the final screen
 	 */
-	public GameView(final Game game) {
+	public GameView(final Game game, final String player) {
 		this.game = game;
+		this.player = player;
 		final Lawn lawn = game.lawn();
 		setPreferredSize(new Dimension((int) lawn.width(), (int) lawn.height() + HUD_HEIGHT));
 		setFocusable(true);
@@ -200,6 +203,7 @@ public class GameView extends JPanel {
 		final int baseline = top + (HUD_HEIGHT + metrics.getAscent() - metrics.getDescent()) / 2;
 		drawRow(g, baseline, 20,
 				String.format("%04.1f s", game.remainingSeconds()),
+				player,
 				String.format("mowed %.1f%%", 100 * lawn.mowedFraction()),
 				"squirrels hit: " + game.hits());
 
@@ -271,7 +275,7 @@ public class GameView extends JPanel {
 
 		g.setColor(Color.WHITE);
 		g.setFont(getFont().deriveFont(Font.BOLD, 36f));
-		drawCentred(g, "Time's up", lawn.height() / 2 - 60);
+		drawCentred(g, "Time's up, " + player, lawn.height() / 2 - 60);
 		g.setFont(getFont().deriveFont(Font.PLAIN, 20f));
 		drawCentred(g, String.format("mowed %.1f%%", 100 * lawn.mowedFraction()),
 				lawn.height() / 2 - 10);

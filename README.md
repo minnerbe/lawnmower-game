@@ -9,7 +9,12 @@ squirrels.
 
 ```bash
 mvn compile exec:java
+mvn compile exec:java -Dexec.args="Ada Lovelace"    # with your name on the scoreboard
 ```
+
+Maven reads the player name from `-Dexec.args`; a bare `mvn compile exec:java myname` will
+not work, because Maven takes `myname` for a goal. Without a name the scoreboard just says
+`player`.
 
 | Key | Action |
 | --- | --- |
