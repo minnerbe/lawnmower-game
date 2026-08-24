@@ -179,7 +179,7 @@ public class GameView extends JPanel {
 				String.format("mowed %.1f%%", 100 * lawn.mowedFraction()),
 				"squirrels hit: " + game.hits());
 
-		paintSpeedBar(g, getWidth() - 60, top + 8);
+		paintSpeedBar(g, getWidth() - 20, top + HUD_HEIGHT / 2);
 	}
 
 	/**
@@ -200,16 +200,23 @@ public class GameView extends JPanel {
 		}
 	}
 
-	/** Draws five stacked segments, green at the bottom and red at the top. */
-	private void paintSpeedBar(final Graphics2D g, final int x, final int y) {
+	/**
+	 * Draws five segments in a row filling right to left, green at the right and red at the
+	 * far left, so the bar grows away from the edge it is anchored to.
+	 *
+	 * @param right x of the bar's right edge, in pixels
+	 * @param middle y of the bar's centre line, in pixels
+	 */
+	private void paintSpeedBar(final Graphics2D g, final int right, final int middle) {
 		final int segments = BAR_COLORS.length;
-		final int height = 12;
+		final int width = 30;
+		final int height = 20;
 		final int gap = 3;
 		final int lit = (int) Math.ceil(segments * game.mower().speed() / Mower.MAX_SPEED);
 
 		for (int i = 0; i < segments; i++) {
 			g.setColor(i < lit ? BAR_COLORS[i] : BAR_EMPTY);
-			g.fillRect(x, y + (segments - 1 - i) * (height + gap), 40, height);
+			g.fillRect(right - (i + 1) * width - i * gap, middle - height / 2, width, height);
 		}
 	}
 
