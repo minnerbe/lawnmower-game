@@ -1,10 +1,15 @@
 package org.janelia.lawnmower;
 
+import java.util.Optional;
+
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
+import org.janelia.lawnmower.control.Controls;
 import org.janelia.lawnmower.control.GameController;
 import org.janelia.lawnmower.control.KeyboardControls;
+import org.janelia.lawnmower.control.XTouchControls;
 import org.janelia.lawnmower.model.Game;
 import org.janelia.lawnmower.view.GameView;
 
@@ -54,11 +59,30 @@ public final class LawnmowerGame {
 		return given.length() <= NAME_LIMIT ? given : given.substring(0, NAME_LIMIT).trim();
 	}
 
+	/**
+	 * Looks for an X-Touch Mini, so the game can be played on it instead of the keyboard.
+	 *
+	 * @return the controls, or empty if the board is not plugged in
+	 */
+	private static Optional<Controls> xTouchMini() {
+		try {
+			final XTouchControls controls = XTouchControls.open();
+			Runtime.getRuntime().addShutdownHook(new Thread(controls::close));
+			System.out.println("playing on the X-Touch Mini: leftmost encoder steers, "
+					+ "the button under it drives");
+			return Optional.of(controls);
+		} catch (final MidiUnavailableException e) {
+			System.out.println("no X-Touch Mini found, using the keyboard: " + e.getMessage());
+			return Optional.empty();
+		}
+	}
+
 	private static void startRound(final String player) {
 		final Game game = new Game(LAWN_WIDTH, LAWN_HEIGHT);
 		final GameView view = new GameView(game, player);
-		final KeyboardControls controls = new KeyboardControls();
-		view.addKeyListener(controls);
+		final KeyboardControls keyboard = new KeyboardControls();
+		view.addKeyListener(keyboard);
+		final Controls controls = xTouchMini().orElse(keyboard);
 
 		final JFrame frame = new JFrame("Lawnmower");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

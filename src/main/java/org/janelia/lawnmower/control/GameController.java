@@ -58,6 +58,7 @@ public class GameController {
 		lastTickNanos = now;
 
 		game.update(dt, controls.accelerating(), controls.turn());
+		controls.feedback(game);
 		view.repaint();
 
 		if (game.state() == Game.State.OVER) {

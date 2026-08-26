@@ -35,6 +35,32 @@ When the clock runs out, the game writes a picture of the finished lawn to
 `screenshots/lawnmower-<date>-<time>.png`, with a red ring around every spot where you ran
 a squirrel over.
 
+## Playing on an X-Touch Mini
+
+Plug a Behringer X-Touch Mini in before starting and the game uses it instead of the
+keyboard; without one it falls back to the arrow keys. The board must be in **Mackie
+Control mode** (hold the MC button while powering it on, or set the mode in the X-Touch
+Editor); the game also asks for MC mode when it opens the port.
+
+| Control | Action |
+| --- | --- |
+| Leftmost encoder | turn, one detent at a time, only while standing still |
+| Button under it (top row, leftmost) | drive forward |
+| That button's LED | lit while the mower is moving |
+| Leftmost LED ring | speed, as a fan |
+| Bottom row LEDs | mowed percentage, one LED per 12.5% |
+| Top row LEDs, 2 to 8 | blink while a squirrel is on the lawn |
+
+To see what the board sends before mapping anything to it, run the device class on its
+own. It lights every LED in turn and then prints each message as `status data1 data2`:
+
+```bash
+mvn compile exec:java -Dexec.mainClass=org.janelia.lawnmower.control.XTouchControls
+```
+
+Unmapped and available: seven more encoders and their LED rings, the eight encoder push
+switches (no LEDs), fifteen more buttons, the two layer buttons, and the fader.
+
 ## Building
 
 Java 21 and Maven. The game itself has no dependencies beyond the JDK; JUnit is used for

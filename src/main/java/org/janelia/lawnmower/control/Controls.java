@@ -1,5 +1,7 @@
 package org.janelia.lawnmower.control;
 
+import org.janelia.lawnmower.model.Game;
+
 /**
  * The player's input, independent of the device it comes from.
  *
@@ -27,4 +29,15 @@ public interface Controls {
 	 * @return turn input in [-1, 1]; negative turns left, positive right, 0 goes straight
 	 */
 	double turn();
+
+	/**
+	 * Shows the state of the round on the device, if it has anything to show it with.
+	 *
+	 * <p>Called once per frame, after the model has advanced. Devices without lights or
+	 * displays, such as a keyboard, need not override it.
+	 *
+	 * @param game the round in progress; implementations must not modify it
+	 */
+	default void feedback(final Game game) {
+	}
 }
