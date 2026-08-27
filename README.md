@@ -9,12 +9,14 @@ squirrels.
 
 ```bash
 mvn compile exec:java
-mvn compile exec:java -Dexec.args="Ada Lovelace"    # with your name on the scoreboard
+mvn compile exec:java -Dexec.args="Ada Lovelace"                   # name on the scoreboard
+mvn compile exec:java -Dexec.args="--device=xtouch Ada Lovelace"   # on an X-Touch Mini
 ```
 
-Maven reads the player name from `-Dexec.args`; a bare `mvn compile exec:java myname` will
-not work, because Maven takes `myname` for a goal. Without a name the scoreboard just says
-`player`.
+Maven reads the arguments from `-Dexec.args`; a bare `mvn compile exec:java myname` will
+not work, because Maven takes `myname` for a goal. `--device=` picks the input device,
+either `keyboard` (the default) or `xtouch`. Everything else is the player's name; without
+one the scoreboard just says `player`.
 
 | Key | Action |
 | --- | --- |
@@ -37,8 +39,9 @@ a squirrel over.
 
 ## Playing on an X-Touch Mini
 
-Plug a Behringer X-Touch Mini in before starting and the game uses it instead of the
-keyboard; without one it falls back to the arrow keys. The board must be in **Mackie
+Start the game with `--device=xtouch` to play on a Behringer X-Touch Mini. The keyboard
+keeps working either way, and the game falls back to it if the board cannot be opened.
+The board must be in **Mackie
 Control mode** (hold the MC button while powering it on, or set the mode in the X-Touch
 Editor); the game also asks for MC mode when it opens the port.
 

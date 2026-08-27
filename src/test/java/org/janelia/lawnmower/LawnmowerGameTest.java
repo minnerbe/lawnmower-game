@@ -17,4 +17,16 @@ class LawnmowerGameTest {
 				LawnmowerGame.playerName(new String[] {"a".repeat(50)}),
 				"an overlong name is cut down to keep the status bar readable");
 	}
+
+	@Test
+	void theDeviceComesOffTheCommandLineAndIsNotPartOfTheName() {
+		assertEquals("xtouch", LawnmowerGame.deviceName(new String[] {"--device=XTouch"}),
+				"the device is matched without regard to case");
+		assertEquals("keyboard", LawnmowerGame.deviceName(new String[] {"Ada"}),
+				"without the flag the game stays on the keyboard");
+		assertEquals("Ada Lovelace",
+				LawnmowerGame.playerName(new String[] {"Ada", "--device=xtouch", "Lovelace"}),
+				"the flag must not turn up on the scoreboard");
+		assertEquals("player", LawnmowerGame.playerName(new String[] {"--device=xtouch"}));
+	}
 }

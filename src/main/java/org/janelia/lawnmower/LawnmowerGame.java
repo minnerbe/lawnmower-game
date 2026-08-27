@@ -1,6 +1,7 @@
 package org.janelia.lawnmower;
 
-import java.util.Optional;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JFrame;
@@ -20,8 +21,9 @@ import org.janelia.lawnmower.view.GameView;
  * drive, and use the left and right arrows to turn while standing still. Every squirrel
  * you run over costs five percent of your score.
  *
- * <p>Pass a player name on the command line to have it shown on the scoreboard:
- * {@code mvn compile exec:java -Dexec.args="my name"}.
+ * <p>Pass a player name on the command line to have it shown on the scoreboard, and
+ * {@code --device=} to pick what to play on:
+ * {@code mvn compile exec:java -Dexec.args="--device=xtouch my name"}.
  */
 public final class LawnmowerGame {
 
@@ -33,12 +35,40 @@ public final class LawnmowerGame {
 	/** Room for a real name, but not enough to push the rest of the status bar off screen. */
 	private static final int NAME_LIMIT = 20;
 
+	/** The argument that picks the input device; everything else is the player's name. */
+	private static final String DEVICE_FLAG = "--device=";
+	private static final String KEYBOARD = "keyboard";
+	private static final String XTOUCH = "xtouch";
+
 	private LawnmowerGame() {
 	}
 
 	public static void main(final String[] args) {
+		final String device = deviceName(args);
+		if (!(device.equals(KEYBOARD) || device.equals(XTOUCH))) {
+			System.err.println("unknown device \"" + device + "\"; pick "
+					+ KEYBOARD + " or " + XTOUCH);
+			System.exit(2);
+		}
 		final String player = playerName(args);
-		SwingUtilities.invokeLater(() -> startRound(player));
+		SwingUtilities.invokeLater(() -> startRound(device, player));
+	}
+
+	/**
+	 * Reads the input device off the command line.
+	 *
+	 * @param args the command-line arguments, possibly empty
+	 * @return the value of the last {@link #DEVICE_FLAG} argument, lower-cased, or
+	 *     {@value #KEYBOARD} if there is none; not checked against the known devices
+	 */
+	static String deviceName(final String[] args) {
+		String device = KEYBOARD;
+		for (final String arg : args) {
+			if (arg.startsWith(DEVICE_FLAG)) {
+				device = arg.substring(DEVICE_FLAG.length()).trim().toLowerCase();
+			}
+		}
+		return device;
 	}
 
 	/**
@@ -52,7 +82,10 @@ public final class LawnmowerGame {
 	 *     {@link #NAME_LIMIT} characters
 	 */
 	static String playerName(final String[] args) {
-		final String given = String.join(" ", args).trim();
+		final String given = Arrays.stream(args)
+				.filter(arg -> !arg.startsWith(DEVICE_FLAG))
+				.collect(Collectors.joining(" "))
+				.trim();
 		if (given.isEmpty()) {
 			return ANONYMOUS;
 		}
@@ -60,29 +93,38 @@ public final class LawnmowerGame {
 	}
 
 	/**
-	 * Looks for an X-Touch Mini, so the game can be played on it instead of the keyboard.
+	 * Opens the chosen input device, falling back to the keyboard if it cannot be had.
 	 *
-	 * @return the controls, or empty if the board is not plugged in
+	 * <p>The keyboard is always listening, so a board that fails to open, or one control
+	 * scheme that turns out to be awkward, never leaves the round unplayable.
+	 *
+	 * @param device {@value #KEYBOARD} or {@value #XTOUCH}
+	 * @param view the component the keyboard listens on
+	 * @return the controls to poll
 	 */
-	private static Optional<Controls> xTouchMini() {
+	private static Controls openControls(final String device, final GameView view) {
+		final KeyboardControls keyboard = new KeyboardControls();
+		view.addKeyListener(keyboard);
+		if (device.equals(KEYBOARD)) {
+			return keyboard;
+		}
 		try {
 			final XTouchControls controls = XTouchControls.open();
 			Runtime.getRuntime().addShutdownHook(new Thread(controls::close));
 			System.out.println("playing on the X-Touch Mini: leftmost encoder steers, "
 					+ "the button under it drives");
-			return Optional.of(controls);
+			return controls;
 		} catch (final MidiUnavailableException e) {
-			System.out.println("no X-Touch Mini found, using the keyboard: " + e.getMessage());
-			return Optional.empty();
+			System.err.println("could not open the X-Touch Mini, using the keyboard: "
+					+ e.getMessage());
+			return keyboard;
 		}
 	}
 
-	private static void startRound(final String player) {
+	private static void startRound(final String device, final String player) {
 		final Game game = new Game(LAWN_WIDTH, LAWN_HEIGHT);
 		final GameView view = new GameView(game, player);
-		final KeyboardControls keyboard = new KeyboardControls();
-		view.addKeyListener(keyboard);
-		final Controls controls = xTouchMini().orElse(keyboard);
+		final Controls controls = openControls(device, view);
 
 		final JFrame frame = new JFrame("Lawnmower");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
