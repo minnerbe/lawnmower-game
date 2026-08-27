@@ -6,6 +6,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.sound.midi.MidiUnavailableException;
@@ -15,6 +16,7 @@ import javax.swing.SwingUtilities;
 import org.janelia.lawnmower.control.Controls;
 import org.janelia.lawnmower.control.GameController;
 import org.janelia.lawnmower.control.KeyboardControls;
+import org.janelia.lawnmower.control.WanderingXTouchControls;
 import org.janelia.lawnmower.control.XTouchControls;
 import org.janelia.lawnmower.model.Game;
 import org.janelia.lawnmower.view.GameView;
@@ -28,7 +30,9 @@ import org.janelia.lawnmower.view.GameView;
  *
  * <p>Pass a player name on the command line to have it shown on the scoreboard, and
  * {@code --device=} to pick what to play on:
- * {@code mvn compile exec:java -Dexec.args="--device=xtouch my name"}.
+ * {@code mvn compile exec:java -Dexec.args="--device=xtouch my name"}. The devices are
+ * {@code keyboard}, {@code xtouch}, and {@code xtouch-hard}, which is the same board with
+ * controls that will not stay put.
  */
 public final class LawnmowerGame {
 
@@ -44,15 +48,19 @@ public final class LawnmowerGame {
 	private static final String DEVICE_FLAG = "--device=";
 	private static final String KEYBOARD = "keyboard";
 	private static final String XTOUCH = "xtouch";
+	/** The X-Touch Mini with controls that move as you play; see {@link WanderingXTouchControls}. */
+	private static final String XTOUCH_HARD = "xtouch-hard";
+	/** What {@link #DEVICE_FLAG} accepts. */
+	private static final List<String> DEVICES = List.of(KEYBOARD, XTOUCH, XTOUCH_HARD);
 
 	private LawnmowerGame() {
 	}
 
 	public static void main(final String[] args) {
 		final String device = deviceName(args);
-		if (!(device.equals(KEYBOARD) || device.equals(XTOUCH))) {
-			System.err.println("unknown device \"" + device + "\"; pick "
-					+ KEYBOARD + " or " + XTOUCH);
+		if (!DEVICES.contains(device)) {
+			System.err.println("unknown device \"" + device + "\"; pick one of "
+					+ String.join(", ", DEVICES));
 			System.exit(2);
 		}
 		final String player = playerName(args);
@@ -103,7 +111,7 @@ public final class LawnmowerGame {
 	 * <p>The keyboard is always listening, so a board that fails to open, or one control
 	 * scheme that turns out to be awkward, never leaves the round unplayable.
 	 *
-	 * @param device {@value #KEYBOARD} or {@value #XTOUCH}
+	 * @param device one of {@link #DEVICES}
 	 * @param view the component the keyboard listens on
 	 * @return the controls to poll
 	 */
@@ -113,11 +121,18 @@ public final class LawnmowerGame {
 		if (device.equals(KEYBOARD)) {
 			return keyboard;
 		}
+		final boolean hard = device.equals(XTOUCH_HARD);
 		try {
-			final XTouchControls controls = XTouchControls.open();
+			final XTouchControls controls = hard
+					? WanderingXTouchControls.open()
+					: XTouchControls.open();
 			Runtime.getRuntime().addShutdownHook(new Thread(controls::close));
-			System.out.println("playing on the X-Touch Mini: leftmost encoder steers, "
-					+ "the button under it drives");
+			System.out.println(hard
+					? "playing on the X-Touch Mini, the hard way: the lit button in the bottom "
+							+ "row drives, the lit one in the top row sits under the encoder that "
+							+ "steers, and both move as you play"
+					: "playing on the X-Touch Mini: leftmost encoder steers, "
+							+ "the button under it drives");
 			return controls;
 		} catch (final MidiUnavailableException e) {
 			System.err.println("could not open the X-Touch Mini, using the keyboard: "

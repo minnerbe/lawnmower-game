@@ -38,24 +38,24 @@ public class XTouchControls implements Controls, Receiver, AutoCloseable {
 	/** Matched against the MIDI device name and description, case-insensitively. */
 	private static final String DEVICE = "X-TOUCH MINI";
 
-	private static final int NOTE_ON = 0x90;
-	private static final int CONTROL_CHANGE = 0xb0;
+	static final int NOTE_ON = 0x90;
+	static final int CONTROL_CHANGE = 0xb0;
 
 	/** Control change of the leftmost encoder; the other seven follow it. */
-	private static final int ENCODER_CC = 0x10;
+	static final int ENCODER_CC = 0x10;
 	/** Control change of the leftmost encoder's LED ring; the other seven follow it. */
-	private static final int RING_CC = 0x30;
+	static final int RING_CC = 0x30;
 	/** Notes of the eight buttons under the encoders, left to right. */
-	private static final int[] TOP_ROW = {0x59, 0x5a, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d};
+	static final int[] TOP_ROW = {0x59, 0x5a, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d};
 	/** Notes of the eight buttons in the bottom row, left to right. */
-	private static final int[] BOTTOM_ROW = {0x57, 0x58, 0x5b, 0x5c, 0x56, 0x5d, 0x5e, 0x5f};
+	static final int[] BOTTOM_ROW = {0x57, 0x58, 0x5b, 0x5c, 0x56, 0x5d, 0x5e, 0x5f};
 
-	private static final int LED_OFF = 0;
+	static final int LED_OFF = 0;
 	private static final int LED_BLINK = 1;
-	private static final int LED_ON = 127;
+	static final int LED_ON = 127;
 
 	/** Number of encoders, and therefore of LED rings. */
-	private static final int ENCODERS = 8;
+	static final int ENCODERS = 8;
 	/** Segments in an encoder's LED ring. */
 	private static final int RING_SEGMENTS = 11;
 	/** Ring drawing mode: a fan growing clockwise from the left. */
@@ -77,7 +77,7 @@ public class XTouchControls implements Controls, Receiver, AutoCloseable {
 	private final MidiDevice[] devices;
 
 	// Written on the MIDI thread, read on the event dispatch thread.
-	private volatile boolean driving;
+	volatile boolean driving;
 	private volatile int turnDirection;
 	private volatile long lastDetentMillis = Long.MIN_VALUE;
 
@@ -105,10 +105,21 @@ public class XTouchControls implements Controls, Receiver, AutoCloseable {
 	 * Finds the board, opens it and switches it into Mackie Control mode.
 	 *
 	 * @return controls reading the board, with every LED dark
+	 * @throws MidiUnavailableException if the board cannot be opened
+	 */
+	public static XTouchControls open() throws MidiUnavailableException {
+		final MidiDevice[] ports = openPorts();
+		return start(new XTouchControls(ports[1].getReceiver(), ports), ports[0]);
+	}
+
+	/**
+	 * Finds the board and opens both of its ports.
+	 *
+	 * @return the input port first, the output port second
 	 * @throws MidiUnavailableException if no X-Touch Mini is plugged in, or its ports are
 	 *     already taken by another program
 	 */
-	public static XTouchControls open() throws MidiUnavailableException {
+	static MidiDevice[] openPorts() throws MidiUnavailableException {
 		MidiDevice input = null;
 		MidiDevice output = null;
 		for (final MidiDevice.Info info : MidiSystem.getMidiDeviceInfo()) {
@@ -127,10 +138,22 @@ public class XTouchControls implements Controls, Receiver, AutoCloseable {
 		if (input == null || output == null) {
 			throw new MidiUnavailableException("no " + DEVICE + " with both an in and an out port");
 		}
-
 		input.open();
 		output.open();
-		final XTouchControls controls = new XTouchControls(output.getReceiver(), input, output);
+		return new MidiDevice[] {input, output};
+	}
+
+	/**
+	 * Puts the board into Mackie Control mode with its LEDs dark, and has it report to the
+	 * given controls.
+	 *
+	 * @param controls the controls to hand the board's messages to
+	 * @param input the board's input port, already open
+	 * @return {@code controls}
+	 * @throws MidiUnavailableException if the input port has no transmitter to spare
+	 */
+	static <C extends XTouchControls> C start(final C controls, final MidiDevice input)
+			throws MidiUnavailableException {
 		input.getTransmitter().setReceiver(controls);
 		// Ask for MC mode, in case the board was left in standard mode by another program.
 		controls.send(CONTROL_CHANGE, 127, 1);
@@ -241,6 +264,15 @@ public class XTouchControls implements Controls, Receiver, AutoCloseable {
 			System.out.printf("status %02x  data %02x %02x%n",
 					m.getStatus(), m.getData1(), m.getData2());
 		}
+		handle(m);
+	}
+
+	/**
+	 * Acts on one message from the board. Called on a MIDI thread, not the EDT.
+	 *
+	 * @param m the message, already known to be a short one
+	 */
+	void handle(final ShortMessage m) {
 		switch (m.getStatus()) {
 			case CONTROL_CHANGE -> {
 				if (m.getData1() == ENCODER_CC + STEER_ENCODER) {
@@ -262,7 +294,7 @@ public class XTouchControls implements Controls, Receiver, AutoCloseable {
 	 * @param value the encoder's control change value: {@code 1..7} detents clockwise, or
 	 *     {@code 0x41..0x47} for the same number anticlockwise
 	 */
-	private void turnedBy(final int value) {
+	void turnedBy(final int value) {
 		turnDirection = value < 0x40 ? 1 : -1;
 		lastDetentMillis = System.currentTimeMillis();
 	}
@@ -275,7 +307,7 @@ public class XTouchControls implements Controls, Receiver, AutoCloseable {
 		}
 	}
 
-	private void send(final int status, final int data1, final int data2) {
+	void send(final int status, final int data1, final int data2) {
 		try {
 			out.send(new ShortMessage(status, data1, data2), -1);
 		} catch (final InvalidMidiDataException e) {

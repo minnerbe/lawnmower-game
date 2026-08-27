@@ -14,9 +14,9 @@ mvn compile exec:java -Dexec.args="--device=xtouch Ada Lovelace"   # on an X-Tou
 ```
 
 Maven reads the arguments from `-Dexec.args`; a bare `mvn compile exec:java myname` will
-not work, because Maven takes `myname` for a goal. `--device=` picks the input device,
-either `keyboard` (the default) or `xtouch`. Everything else is the player's name; without
-one the scoreboard just says `player`.
+not work, because Maven takes `myname` for a goal. `--device=` picks the input device:
+`keyboard` (the default), `xtouch`, or `xtouch-hard`. Everything else is the player's name;
+without one the scoreboard picks one for you.
 
 The window opens on an external screen if one is attached, whatever screen the shell that
 started the game is on; with a single screen it opens there.
@@ -56,6 +56,20 @@ Editor); the game also asks for MC mode when it opens the port.
 | Leftmost LED ring | speed, as a fan |
 | Bottom row LEDs | mowed percentage, one LED per 12.5% |
 | Top row LEDs, 2 to 8 | blink while a squirrel is on the lawn |
+
+### The hard way
+
+Start the game with `--device=xtouch-hard` and the controls will not stay put. Steering
+starts on the leftmost encoder and driving on the bottom right button, and then:
+
+- pressing the drive button moves steering one encoder to the right;
+- releasing it moves the drive button one to the left;
+- both wrap around at the end of their row.
+
+The lights are the only way to keep track. The lit button in the bottom row is the one that
+drives, and the lit button in the top row is the one directly below the encoder that
+steers. The speed fan, the coverage bar and the squirrel alert are all off in this mode,
+because both rows of buttons are needed to say where the controls have got to.
 
 To see what the board sends before mapping anything to it, run the device class on its
 own. It lights every LED in turn and then prints each message as `status data1 data2`:

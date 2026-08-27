@@ -14,8 +14,8 @@ class LawnmowerGameTest {
 	void thePlayerNameComesOffTheCommandLine() {
 		assertEquals("Ada Lovelace", LawnmowerGame.playerName(new String[] {"Ada", "Lovelace"}),
 				"-Dexec.args splits a name on spaces, so the parts have to be rejoined");
-		assertEquals("player", LawnmowerGame.playerName(new String[0]));
-		assertEquals("player", LawnmowerGame.playerName(new String[] {"  "}),
+		assertEquals("Mowy McMowface", LawnmowerGame.playerName(new String[0]));
+		assertEquals("Mowy McMowface", LawnmowerGame.playerName(new String[] {"  "}),
 				"a blank name would leave a gap in the status bar");
 		assertEquals("aaaaaaaaaaaaaaaaaaaa",
 				LawnmowerGame.playerName(new String[] {"a".repeat(50)}),
@@ -31,7 +31,10 @@ class LawnmowerGameTest {
 		assertEquals("Ada Lovelace",
 				LawnmowerGame.playerName(new String[] {"Ada", "--device=xtouch", "Lovelace"}),
 				"the flag must not turn up on the scoreboard");
-		assertEquals("player", LawnmowerGame.playerName(new String[] {"--device=xtouch"}));
+		assertEquals("Mowy McMowface", LawnmowerGame.playerName(new String[] {"--device=xtouch"}));
+		assertEquals("xtouch-hard",
+				LawnmowerGame.deviceName(new String[] {"--device=xtouch", "--device=xtouch-hard"}),
+				"the last flag wins");
 	}
 
 	@Test
