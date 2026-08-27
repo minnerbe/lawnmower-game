@@ -1,5 +1,10 @@
 package org.janelia.lawnmower;
 
+import java.awt.Dimension;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -121,6 +126,39 @@ public final class LawnmowerGame {
 		}
 	}
 
+	/**
+	 * Picks the screen to play on: an external one if there is one, so the game does not
+	 * open on a laptop's own display when a bigger screen is plugged in.
+	 *
+	 * @return the bounds of the chosen screen, in the virtual desktop's coordinates
+	 */
+	private static Rectangle preferredScreen() {
+		final GraphicsEnvironment environment = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		final GraphicsDevice primary = environment.getDefaultScreenDevice();
+		GraphicsDevice chosen = primary;
+		for (final GraphicsDevice candidate : environment.getScreenDevices()) {
+			if (candidate != primary) {
+				chosen = candidate;
+				break;
+			}
+		}
+		return chosen.getDefaultConfiguration().getBounds();
+	}
+
+	/**
+	 * Centres a window on a screen, keeping its title bar reachable.
+	 *
+	 * @param screen bounds of the screen, in the virtual desktop's coordinates
+	 * @param window size of the window, in pixels
+	 * @return where to put the window's top left corner; never above or left of the
+	 *     screen's own corner, even if the window does not fit
+	 */
+	static Point topLeftOn(final Rectangle screen, final Dimension window) {
+		return new Point(
+				screen.x + Math.max(0, (screen.width - window.width) / 2),
+				screen.y + Math.max(0, (screen.height - window.height) / 2));
+	}
+
 	private static void startRound(final String device, final String player) {
 		final Game game = new Game(LAWN_WIDTH, LAWN_HEIGHT);
 		final GameView view = new GameView(game, player);
@@ -131,7 +169,7 @@ public final class LawnmowerGame {
 		frame.setContentPane(view);
 		frame.setResizable(false);
 		frame.pack();
-		frame.setLocationRelativeTo(null);
+		frame.setLocation(topLeftOn(preferredScreen(), frame.getSize()));
 		frame.setVisible(true);
 		view.requestFocusInWindow();
 

@@ -18,6 +18,9 @@ not work, because Maven takes `myname` for a goal. `--device=` picks the input d
 either `keyboard` (the default) or `xtouch`. Everything else is the player's name; without
 one the scoreboard just says `player`.
 
+The window opens on an external screen if one is attached, whatever screen the shell that
+started the game is on; with a single screen it opens there.
+
 | Key | Action |
 | --- | --- |
 | Up arrow | drive forward |
