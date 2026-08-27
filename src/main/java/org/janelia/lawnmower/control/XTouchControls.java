@@ -30,6 +30,9 @@ import org.janelia.lawnmower.model.Mower;
  * {@link #LED_ON}, {@link #LED_BLINK} or {@link #LED_OFF} to light a button, and a control
  * change on {@code 0x30}-{@code 0x37} to draw on an encoder's eleven-segment ring.
  *
+ * <p>The leftmost encoder steers and the bottom right button drives; see
+ * {@link #feedback} for what the lights say.
+ *
  * <p>Run this class on its own to see what the board sends:
  * {@code mvn compile exec:java -Dexec.mainClass=org.janelia.lawnmower.control.XTouchControls}
  */
@@ -61,10 +64,10 @@ public class XTouchControls implements Controls, Receiver, AutoCloseable {
 	/** Ring drawing mode: a fan growing clockwise from the left. */
 	private static final int RING_FAN = 2;
 
-	/** The encoder that steers: the leftmost one. */
-	private static final int STEER_ENCODER = 0;
-	/** The button that drives: the leftmost one of the top row. */
-	private static final int DRIVE_BUTTON = TOP_ROW[0];
+	/** Where steering sits, and starts: the leftmost encoder. */
+	static final int FIRST_ENCODER = 0;
+	/** Where driving sits, and starts: the rightmost button of the bottom row. */
+	static final int FIRST_BUTTON = BOTTOM_ROW.length - 1;
 
 	/**
 	 * How long one detent of the encoder keeps the mower turning, in milliseconds. The
@@ -84,11 +87,10 @@ public class XTouchControls implements Controls, Receiver, AutoCloseable {
 	/** Set by {@link #main} to print everything the board sends. */
 	private volatile boolean dump;
 
-	// Last values sent to the board, so a 60 Hz loop does not flood the MIDI port.
+	// Last state shown on the board, so a 60 Hz loop does not flood the MIDI port.
 	private int sentRing = -1;
-	private int sentProgress = -1;
-	private int sentDrive = -1;
-	private int sentAlert = -1;
+	private int litEncoder = -1;
+	private int litButton = -1;
 
 	/**
 	 * Wires the controls to an already open MIDI port.
@@ -185,13 +187,40 @@ public class XTouchControls implements Controls, Receiver, AutoCloseable {
 		return nowMillis - lastDetentMillis < TURN_HOLD_MILLIS ? turnDirection : 0;
 	}
 
-	/** Mirrors the round onto the board: speed on the ring, coverage and alerts on the buttons. */
+	/**
+	 * Mirrors the round onto the board: the lit button in the bottom row is the one that
+	 * drives, the lit button in the top row sits under the encoder that steers, and that
+	 * encoder's ring shows the mower's speed.
+	 */
 	@Override
 	public void feedback(final Game game) {
-		setRing(STEER_ENCODER, ringFan(game.mower().speed() / Mower.MAX_SPEED));
-		setProgress((int) (game.lawn().mowedFraction() * BOTTOM_ROW.length));
-		setDrive(game.mower().isMoving());
-		setAlert(!game.squirrels().isEmpty());
+		final int encoder = steerEncoder();
+		if (encoder != litEncoder) {
+			if (litEncoder >= 0) {
+				send(CONTROL_CHANGE, RING_CC + litEncoder, 0);
+				send(NOTE_ON, TOP_ROW[litEncoder], LED_OFF);
+			}
+			send(NOTE_ON, TOP_ROW[encoder], LED_ON);
+			litEncoder = encoder;
+			// The fan has to be drawn again, on the ring it has moved to.
+			sentRing = -1;
+		}
+		final int fan = ringFan(game.mower().speed() / Mower.MAX_SPEED);
+		if (fan != sentRing) {
+			sentRing = fan;
+			send(CONTROL_CHANGE, RING_CC + encoder, fan);
+		}
+
+		final int button = driveButton();
+		if (button != litButton) {
+			if (litButton >= 0) {
+				send(NOTE_ON, BOTTOM_ROW[litButton], LED_OFF);
+			}
+			send(NOTE_ON, BOTTOM_ROW[button], LED_ON);
+			litButton = button;
+		}
+		// ponytail: coverage and squirrel alerts are left off. Both rows of buttons are
+		// needed to say where the controls are; the seven spare rings could take them.
 	}
 
 	/**
@@ -204,40 +233,31 @@ public class XTouchControls implements Controls, Receiver, AutoCloseable {
 		return RING_FAN * 16 + (int) Math.round(Math.clamp(fraction, 0.0, 1.0) * RING_SEGMENTS);
 	}
 
-	private void setRing(final int encoder, final int value) {
-		if (value != sentRing) {
-			sentRing = value;
-			send(CONTROL_CHANGE, RING_CC + encoder, value);
-		}
+	/**
+	 * Which encoder steers. Fixed here; the wandering mode moves it.
+	 *
+	 * @return the index of the steering encoder, {@code 0} being the leftmost
+	 */
+	int steerEncoder() {
+		return FIRST_ENCODER;
 	}
 
-	private void setProgress(final int lit) {
-		if (lit == sentProgress) {
-			return;
-		}
-		sentProgress = lit;
-		for (int i = 0; i < BOTTOM_ROW.length; i++) {
-			send(NOTE_ON, BOTTOM_ROW[i], i < lit ? LED_ON : LED_OFF);
-		}
+	/**
+	 * Which button drives. Fixed here; the wandering mode moves it.
+	 *
+	 * @return the index in {@link #BOTTOM_ROW} of the driving button
+	 */
+	int driveButton() {
+		return FIRST_BUTTON;
 	}
 
-	private void setDrive(final boolean moving) {
-		final int led = moving ? LED_ON : LED_OFF;
-		if (led != sentDrive) {
-			sentDrive = led;
-			send(NOTE_ON, DRIVE_BUTTON, led);
-		}
-	}
-
-	private void setAlert(final boolean squirrelAbout) {
-		final int led = squirrelAbout ? LED_BLINK : LED_OFF;
-		if (led == sentAlert) {
-			return;
-		}
-		sentAlert = led;
-		for (int i = 1; i < TOP_ROW.length; i++) {
-			send(NOTE_ON, TOP_ROW[i], led);
-		}
+	/**
+	 * Acts on the drive button. Called on a MIDI thread, not the EDT.
+	 *
+	 * @param down whether the button was pressed rather than released
+	 */
+	void drive(final boolean down) {
+		driving = down;
 	}
 
 	/** Turns every LED off, so the board is not left lit after the game exits. */
@@ -251,7 +271,7 @@ public class XTouchControls implements Controls, Receiver, AutoCloseable {
 		for (final int note : BOTTOM_ROW) {
 			send(NOTE_ON, note, LED_OFF);
 		}
-		sentRing = sentProgress = sentDrive = sentAlert = -1;
+		sentRing = litEncoder = litButton = -1;
 	}
 
 	/** Receives a message from the board. Called on a MIDI thread, not the EDT. */
@@ -275,13 +295,13 @@ public class XTouchControls implements Controls, Receiver, AutoCloseable {
 	void handle(final ShortMessage m) {
 		switch (m.getStatus()) {
 			case CONTROL_CHANGE -> {
-				if (m.getData1() == ENCODER_CC + STEER_ENCODER) {
+				if (m.getData1() == ENCODER_CC + steerEncoder()) {
 					turnedBy(m.getData2());
 				}
 			}
 			case NOTE_ON -> {
-				if (m.getData1() == DRIVE_BUTTON) {
-					driving = m.getData2() != 0;
+				if (m.getData1() == BOTTOM_ROW[driveButton()]) {
+					drive(m.getData2() != 0);
 				}
 			}
 			default -> { }

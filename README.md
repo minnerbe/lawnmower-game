@@ -51,11 +51,13 @@ Editor); the game also asks for MC mode when it opens the port.
 | Control | Action |
 | --- | --- |
 | Leftmost encoder | turn, one detent at a time, only while standing still |
-| Button under it (top row, leftmost) | drive forward |
-| That button's LED | lit while the mower is moving |
-| Leftmost LED ring | speed, as a fan |
-| Bottom row LEDs | mowed percentage, one LED per 12.5% |
-| Top row LEDs, 2 to 8 | blink while a squirrel is on the lawn |
+| Bottom right button | drive forward |
+| Lit button, bottom row | the button that drives |
+| Lit button, top row | sits under the encoder that steers |
+| That encoder's LED ring | speed, as a fan |
+
+The two lit buttons never move in this mode. They earn their keep in the hard mode below,
+which lights the same things and then moves them around.
 
 ### The hard way
 
@@ -66,10 +68,10 @@ starts on the leftmost encoder and driving on the bottom right button, and then:
 - releasing it moves the drive button one to the left;
 - both wrap around at the end of their row.
 
-The lights are the only way to keep track. The lit button in the bottom row is the one that
-drives, and the lit button in the top row is the one directly below the encoder that
-steers. The speed fan, the coverage bar and the squirrel alert are all off in this mode,
-because both rows of buttons are needed to say where the controls have got to.
+The lights are the only way to keep track, and they are the same lights as ever: the lit
+button in the bottom row is the one that drives, the lit button in the top row is the one
+directly below the encoder that steers, and the speed fan follows that encoder onto its
+ring.
 
 To see what the board sends before mapping anything to it, run the device class on its
 own. It lights every LED in turn and then prints each message as `status data1 data2`:
