@@ -38,6 +38,22 @@ class LawnmowerGameTest {
 	}
 
 	@Test
+	void theBiggestScreenWins() {
+		final Rectangle laptop = new Rectangle(-1512, 780, 1512, 982);
+		final Rectangle ultrawide = new Rectangle(0, 0, 3440, 1440);
+		final Rectangle little = new Rectangle(0, 0, 1280, 720);
+		assertEquals(ultrawide, LawnmowerGame.largest(laptop, laptop, ultrawide),
+				"the roomier screen wins, primary or not");
+		assertEquals(ultrawide, LawnmowerGame.largest(ultrawide, laptop, ultrawide),
+				"and still wins when it is itself the primary");
+		assertEquals(laptop, LawnmowerGame.largest(laptop, laptop, little),
+				"a small second screen does not win just for being external");
+		assertEquals(laptop, LawnmowerGame.largest(laptop, laptop), "one screen is the screen");
+		assertEquals(laptop, LawnmowerGame.largest(laptop, new Rectangle(0, 0, 982, 1512)),
+				"the primary wins a tie on area");
+	}
+
+	@Test
 	void theWindowIsCentredOnTheScreenItIsSentTo() {
 		final Rectangle external = new Rectangle(1800, 0, 1920, 1080);
 		assertEquals(new Point(1960, 100), LawnmowerGame.topLeftOn(external, new Dimension(1600, 880)),

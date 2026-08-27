@@ -1,7 +1,6 @@
 package org.janelia.lawnmower;
 
 import java.awt.Dimension;
-import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -142,22 +141,41 @@ public final class LawnmowerGame {
 	}
 
 	/**
-	 * Picks the screen to play on: an external one if there is one, so the game does not
-	 * open on a laptop's own display when a bigger screen is plugged in.
+	 * Picks the screen to play on: the biggest one there is, so the game does not open on a
+	 * laptop's own display when a roomier screen is plugged in.
 	 *
 	 * @return the bounds of the chosen screen, in the virtual desktop's coordinates
 	 */
 	private static Rectangle preferredScreen() {
 		final GraphicsEnvironment environment = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		final GraphicsDevice primary = environment.getDefaultScreenDevice();
-		GraphicsDevice chosen = primary;
-		for (final GraphicsDevice candidate : environment.getScreenDevices()) {
-			if (candidate != primary) {
-				chosen = candidate;
-				break;
+		return largest(
+				environment.getDefaultScreenDevice().getDefaultConfiguration().getBounds(),
+				Arrays.stream(environment.getScreenDevices())
+						.map(screen -> screen.getDefaultConfiguration().getBounds())
+						.toArray(Rectangle[]::new));
+	}
+
+	/**
+	 * Picks the screen with the most room on it.
+	 *
+	 * @param primary the screen to fall back on, which also wins ties
+	 * @param screens the bounds of every screen, possibly including {@code primary}
+	 * @return the bounds of the largest screen by area, or {@code primary} if the screens
+	 *     are all smaller or there are none
+	 */
+	static Rectangle largest(final Rectangle primary, final Rectangle... screens) {
+		Rectangle chosen = primary;
+		for (final Rectangle screen : screens) {
+			if (area(screen) > area(chosen)) {
+				chosen = screen;
 			}
 		}
-		return chosen.getDefaultConfiguration().getBounds();
+		return chosen;
+	}
+
+	/** Screen area in pixels, as a long, because two 4K screens overflow an int. */
+	private static long area(final Rectangle screen) {
+		return (long) screen.width * screen.height;
 	}
 
 	/**
