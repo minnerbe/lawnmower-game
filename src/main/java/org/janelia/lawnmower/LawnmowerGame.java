@@ -36,7 +36,7 @@ public final class LawnmowerGame {
 	private static final int LAWN_HEIGHT = 800;
 
 	/** Stands in for a name the player did not give. */
-	private static final String ANONYMOUS = "player";
+	private static final String ANONYMOUS = "Mowy McMowface";
 	/** Room for a real name, but not enough to push the rest of the status bar off screen. */
 	private static final int NAME_LIMIT = 20;
 
